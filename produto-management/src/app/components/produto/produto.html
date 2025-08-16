@@ -1,0 +1,117 @@
+<div class="container">
+  <div class="header">
+    <h1>Gerenciamento de Produtos</h1>
+    <p>Sistema para cadastro, edição e exclusão de produtos</p>
+  </div>
+
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>{{ isEditing ? 'Editar Produto' : 'Novo Produto' }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="produtoForm" (ngSubmit)="salvarProduto()">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Código</mat-label>
+            <input matInput formControlName="codigo" placeholder="Ex: PROD001">
+            <mat-error *ngIf="produtoForm.get('codigo')?.hasError('required')">Código é obrigatório</mat-error>
+            <mat-error *ngIf="produtoForm.get('codigo')?.hasError('minlength')">Código deve ter pelo menos 3 caracteres</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Descrição</mat-label>
+            <input matInput formControlName="descricao" placeholder="Ex: Produto de exemplo">
+            <mat-error *ngIf="produtoForm.get('descricao')?.hasError('required')">Descrição é obrigatória</mat-error>
+            <mat-error *ngIf="produtoForm.get('descricao')?.hasError('minlength')">Descrição deve ter pelo menos 5 caracteres</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Departamento</mat-label>
+            <mat-select formControlName="departamentoId">
+              <mat-option *ngFor="let dept of departamentos" [value]="dept.id">{{ dept.nome }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="produtoForm.get('departamentoId')?.hasError('required')">Departamento é obrigatório</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Preço</mat-label>
+            <input matInput type="number" formControlName="preco" placeholder="0.00" step="0.01">
+            <span matPrefix>R$&nbsp;</span>
+            <mat-error *ngIf="produtoForm.get('preco')?.hasError('required')">Preço é obrigatório</mat-error>
+            <mat-error *ngIf="produtoForm.get('preco')?.hasError('min')">Preço deve ser maior que zero</mat-error>
+          </mat-form-field>
+
+          <mat-checkbox formControlName="status" class="status-checkbox">Produto Ativo</mat-checkbox>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" mat-raised-button color="primary" [disabled]="produtoForm.invalid">{{ isEditing ? 'Atualizar' : 'Cadastrar' }}</button>
+          <button *ngIf="isEditing" type="button" mat-button (click)="cancelarEdicao()">Cancelar</button>
+          <button type="button" mat-button (click)="resetarFormulario()">Limpar</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>Lista de Produtos</mat-card-title>
+      <mat-card-subtitle>Total: {{ produtos.length }} produto(s)</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="produtos" class="products-table">
+          <ng-container matColumnDef="codigo">
+            <th mat-header-cell *matHeaderCellDef>Código</th>
+            <td mat-cell *matCellDef="let produto">{{ produto.codigo }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="descricao">
+            <th mat-header-cell *matHeaderCellDef>Descrição</th>
+            <td mat-cell *matCellDef="let produto">{{ produto.descricao }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="departamento">
+            <th mat-header-cell *matHeaderCellDef>Departamento</th>
+            <td mat-cell *matCellDef="let produto">{{ getNomeDepartamento(produto.departamentoId) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="preco">
+            <th mat-header-cell *matHeaderCellDef>Preço</th>
+            <td mat-cell *matCellDef="let produto">{{ formatarPreco(produto.preco) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let produto">
+              <span class="status-badge" [class.active]="produto.status" [class.inactive]="!produto.status">{{ formatarStatus(produto.status) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acoes">
+            <th mat-header-cell *matHeaderCellDef>Ações</th>
+            <td mat-cell *matCellDef="let produto">
+              <button mat-icon-button color="primary" (click)="editarProduto(produto)" matTooltip="Editar produto">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="excluirProduto(produto.id)" matTooltip="Excluir produto">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <div *ngIf="produtos.length === 0" class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>Nenhum produto cadastrado</p>
+          <p>Use o formulário acima para cadastrar o primeiro produto</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
